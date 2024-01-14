@@ -31,7 +31,14 @@ def install_req(cmd: str) -> Tuple[str, str, int, int]:
     )
 
 
-        def git():
+        from git import Repo, GitCommandError, InvalidGitRepositoryError
+import config  # Importing the necessary config module
+import logging  # Importing the logging module if it hasn't been already imported
+
+# Assuming LOGGER is configured as per the logging module documentation
+def git(name):
+    LOGGER = logging.getLogger(__name)  # Assuming LOGGER is configured as per the logging module documentation
+
     REPO_LINK = config.UPSTREAM_REPO
     if config.GIT_TOKEN:
         GIT_USERNAME = REPO_LINK.split("com/")[1].split("/")[0]
@@ -41,11 +48,14 @@ def install_req(cmd: str) -> Tuple[str, str, int, int]:
         )
     else:
         UPSTREAM_REPO = config.UPSTREAM_REPO
+
     try:
         repo = Repo()
-        LOGGER(name).info(f"Git Client Found [VPS DEPLOYER]")
-    except GitCommandError:
-        LOGGER(name).info(f"Invalid Git Command")
+        LOGGER.info(f"Git Client Found [VPS DEPLOYER]")
+    except GitCommandError as e:
+        LOGGER.error(f"Invalid Git Command: {e}")
+        # Handle the GitCommandError exception
+
     except InvalidGitRepositoryError:
         repo = Repo.init()
         if "origin" in repo.remotes:
@@ -63,13 +73,16 @@ def install_req(cmd: str) -> Tuple[str, str, int, int]:
         repo.heads[config.UPSTREAM_BRANCH].checkout(True)
         try:
             repo.create_remote("origin", config.UPSTREAM_REPO)
-        except BaseException:
-            pass
+        except BaseException as e:
+            LOGGER.error(f"Failed to create remote: {e}")
+            # Handle the exception appropriately
         nrs = repo.remote("origin")
         nrs.fetch(config.UPSTREAM_BRANCH)
         try:
             nrs.pull(config.UPSTREAM_BRANCH)
-        except GitCommandError:
+        except GitCommandError as e:
+            LOGGER.error(f"Failed to pull: {e}")
             repo.git.reset("--hard", "FETCH_HEAD")
+            # Handle the GitCommandError appropriately
         install_req("pip3 install --no-cache-dir -r requirements.txt")
-        LOGGER(name).info(f"Fetching updates from ™°‌ 🫧 🇴 🇽 𝐘 𝐆 𝐄 𝐍...")
+        LOGGER.info(f"Fetching updates from ™°‌ 🇭 🇦 🇷 🇸 🇭 🇺")
